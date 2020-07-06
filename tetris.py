@@ -4,107 +4,133 @@ import curses
 from time import sleep
 import random
 
-
-
-COLS = 50
+COLS = 20
 ROWS = 30
-board = [0] * COLS * ROWS
 
-for row in range(ROWS-1):
-    board[row * COLS + 0] = -1
-    board[row * COLS + COLS - 1] = -1
-for col in range(COLS):
-    board[(ROWS - 1) * COLS + col] = -1
+class Tetris:
 
-def can_move(id, row, col, piece):
-    for square in piece:
-        y, x = square
-        Y = row+y
-        X = col+x
-        if Y >= ROWS:
-            return False
-        if X >= COLS:
-            return False
-        square = board[Y* COLS + X]
-        if square == 0:
-            continue
-        if square != id:
-            return False
-    return True
+    def __init__(self, scr):
+        self.board = [0] * COLS * ROWS
+        self.board_color = [1] * COLS * ROWS
+        self.scr = scr
 
-def draw(scr, id, row, col, piece, color):
-    for square in piece:
-        y, x = square
-        Y = row+y
-        X = col+x
-        scr.addch(Y, X, " ", curses.color_pair(color))
-        board[Y * COLS + X] = id
+        for row in range(ROWS-1):
+            self.set(row, 0, -1, 4)
+            self.set(row, COLS-1, -1, 4)
+            for col in range(1, COLS-1):
+                self.set(row, col, 0, 1)
+        for col in range(COLS):
+            self.set(ROWS - 1, col, -1, 4)
 
-def hide(scr, row, col, piece):
-    for square in piece:
-        y, x = square
-        Y = row+y
-        X = col+x
-        scr.addch(Y, X, " ", curses.color_pair(6))
-        board[Y * COLS + X] = 0
+    def set(self, y, x, id, color):
+        self.board[y * COLS + x] = id
+        self.board_color[y * COLS + x] = color
+        self.scr.addch(y, x, " ", curses.color_pair(color))
 
-def getkey(scr):
-    try:
-        k = scr.getkey()
-    except Exception:
-        k = ""
-    return k
+    def clear(self, y, x):
+        self.set(y, x, 0, 1)
+
+    def get(self, y, x):
+        if y < 0 or y >= ROWS or x < 0 or x >= COLS:
+            return -1
+        return self.board[y * COLS + x]
         
-def fall(scr, id, row, col, piece, color):
-    prev_y = -1
-    prev_x = -1
-    for i in range(ROWS):
-        k = getkey(scr)
-        if (k == "n"):
-            col -= 1
-        if (k == "m"):
-            col += 1
-        if (k == "k"):
-            piece = turn(piece)
-        if (not can_move(id, row+i, col, piece)):
-            break
-        if prev_y >= 0:
-            hide(scr, prev_y, prev_x, prev_piece)
-        draw(scr, id, row+i, col, piece, color)
-        prev_y=row+i
-        prev_x=col
-        prev_piece = piece
-        scr.refresh()
-        sleep(0.3)
-    scr.refresh()
+    def get_color(self, y, x):
+        if y < 0 or y >= ROWS or x < 0 or x >= COLS:
+            return -1
+        return self.board_color[y * COLS + x]
+        
+    def can_move(self, id, row, col, piece):
+        for y,x in piece:
+            Y = row+y
+            X = col+x
+            square = self.get(Y, X)
+            if square == 0:
+                continue
+            if square != id:
+                return False
+        return True
 
-def turn(piece):
-    turned = []
-    for y, x in piece:
-        turned.append((x, -y))
-    return turned
+    def draw(self, id, row, col, piece, color):
+        for y, x in piece:
+            self.set(row+y, col+x, id, color)
+
+    def hide(self, row, col, piece):
+        for y, x in piece:
+            self.clear(row+y, col+x)
+
+    def getkey(self):
+        try:
+            k = self.scr.getkey()
+        except Exception:
+            k = ""
+        return k
+
+    def fall(self, id, row, col, piece, color):
+        prev_y = -1
+        prev_x = -1
+        for i in range(ROWS):
+            k = self.getkey()
+            if (k == "n"):
+                col -= 1
+            if (k == "m"):
+                col += 1
+            if (k == "k"):
+                piece = self.turn(piece)
+            if (k != "" and not self.can_move(id, row+i, col, piece)):
+                piece = prev_piece
+                col = prev_x
+            if (not self.can_move(id, row+i, col, piece)):
+                break
+            if prev_y >= 0:
+                self.hide(prev_y, prev_x, prev_piece)
+            self.draw(id, row+i, col, piece, color)
+            prev_y=row+i
+            prev_x=col
+            prev_piece = piece
+            '''
+            full = self.find_full_row()
+            if full:
+                self.remove(full)
+            '''
+            self.scr.refresh()
+            #sleep(0.3)
+            self.scr.refresh()
+
+    def turn(self, piece):
+        turned = []
+        for y, x in piece:
+            turned.append((x, -y))
+        return turned
+
+    def find_full_row(self):
+        for row in range(ROWS-1):
+            full = True
+            for col in range(COLS):
+                if self.get(row, col) == 0:
+                    full = False
+            if full:
+                return row
+        return None
+
+    def remove(self, row):
+        for dy in range(0, row-1):
+            for col in range(1, COLS-1):
+                self.set(row-dy, col, self.get(row-dy-1, col),
+                         self.get_color(row+dy+1, col))
+            
+            
 
 def main(stdscr):
-    RED = 1
-    BLUE = 2
-    GREEN = 3
-    YELLOW = 4
-    MAGENTA = 5
-    BLACK = 6
-    colors = (RED, BLUE, GREEN, YELLOW, MAGENTA)
+    curses.use_default_colors()
+    for i in range(0, curses.COLORS):
+        curses.init_pair(i + 1, i, i)
     stdscr.clear()
-    #curses.resizeterm(ROWS, COLS)
     curses.curs_set(0)
     curses.cbreak()
     stdscr.nodelay(True)
-    curses.halfdelay(1)
-
-    curses.init_pair(RED, curses.COLOR_BLACK, curses.COLOR_RED)
-    curses.init_pair(BLUE, curses.COLOR_BLACK, curses.COLOR_BLUE)
-    curses.init_pair(GREEN, curses.COLOR_BLACK, curses.COLOR_GREEN)
-    curses.init_pair(YELLOW, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-    curses.init_pair(MAGENTA, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
-    curses.init_pair(BLACK, curses.COLOR_BLACK, curses.COLOR_BLACK)
+    curses.halfdelay(5)
+    curses.start_color()
 
     O = ((0,0), (0,1), (1,0), (1,1))
     L = ((0,0), (1,0), (2,0), (2,1))
@@ -116,21 +142,28 @@ def main(stdscr):
 
     pieces = (O, L, L1, I, T, Z, Z1)
 
-    color = random.choice(colors)
+    game = Tetris(stdscr)
 
-    prevcol = BLACK
+    #game.set(3, 4, 5, 3)
+
+
+
+    prevcol = 1
     random.seed()
     for id in range(1, 100):
+        color = random.choice(range(2, curses.COLORS))
+        '''
         while(True):
-            color = random.choice(colors)
-            if (color != prevcol):
-                break
-        fall(stdscr, id, 3, 24, random.choice(pieces), color)
-        prevcol = color
+            color = random.choice(range(2, curses.COLORS))
+            if (color == prevcol):
+                continue
+        '''
+        game.fall(id, 1, 7, random.choice(pieces), color)
+        #prevcol = color
 
     
     stdscr.refresh()
-    while(getkey(stdscr) != "q"):
+    while(game.getkey() != "q"):
         pass
 
 
