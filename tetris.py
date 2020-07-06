@@ -88,11 +88,9 @@ class Tetris:
             prev_y=row+i
             prev_x=col
             prev_piece = piece
-            '''
             full = self.find_full_row()
             if full:
                 self.remove(full)
-            '''
             self.scr.refresh()
             #sleep(0.3)
             self.scr.refresh()
@@ -117,7 +115,7 @@ class Tetris:
         for dy in range(0, row-1):
             for col in range(1, COLS-1):
                 self.set(row-dy, col, self.get(row-dy-1, col),
-                         self.get_color(row+dy+1, col))
+                         self.get_color(row-dy-1, col))
             
             
 
@@ -151,16 +149,8 @@ def main(stdscr):
     prevcol = 1
     random.seed()
     for id in range(1, 100):
-        color = random.choice(range(2, curses.COLORS))
-        '''
-        while(True):
-            color = random.choice(range(2, curses.COLORS))
-            if (color == prevcol):
-                continue
-        '''
+        color = random.choice(range(4, curses.COLORS))
         game.fall(id, 1, 7, random.choice(pieces), color)
-        #prevcol = color
-
     
     stdscr.refresh()
     while(game.getkey() != "q"):
