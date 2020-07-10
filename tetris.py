@@ -69,30 +69,38 @@ class Tetris:
     def fall(self, id, row, col, piece, color):
         prev_y = -1
         prev_x = -1
-        for i in range(ROWS):
+        k = ""
+        while (True):
+            if (k == "p" and self.getkey() == ""):
+                continue
             k = self.getkey()
-            if (k == "n"):
+            if (k == "q"):
+                row -= 1
+            elif (k == "p"):
+                continue
+            elif (k == "n"):
                 col -= 1
-            if (k == "m"):
+            elif (k == "m"):
                 col += 1
-            if (k == "k"):
+            elif (k == "k"):
                 piece = self.turn(piece)
-            if (k != "" and not self.can_move(id, row+i, col, piece)):
+            else:
+                row += 1
+            if (k != "" and not self.can_move(id, row, col, piece)):
                 piece = prev_piece
                 col = prev_x
-            if (not self.can_move(id, row+i, col, piece)):
+            if (not self.can_move(id, row, col, piece)):
                 break
             if prev_y >= 0:
                 self.hide(prev_y, prev_x, prev_piece)
-            self.draw(id, row+i, col, piece, color)
-            prev_y=row+i
+            self.draw(id, row, col, piece, color)
+            prev_y=row
             prev_x=col
             prev_piece = piece
             full = self.find_full_row()
             if full:
                 self.remove(full)
             self.scr.refresh()
-            #sleep(0.3)
             self.scr.refresh()
 
     def turn(self, piece):
