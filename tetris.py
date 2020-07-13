@@ -13,12 +13,12 @@ class Tetris:
         self.board = [0] * COLS * ROWS
         self.board_color = [1] * COLS * ROWS
         self.scr = scr
-
+        self.init_colors()
         for row in range(ROWS-1):
             self.set(row, 0, -1, 4)
             self.set(row, COLS-1, -1, 4)
             for col in range(1, COLS-1):
-                self.set(row, col, 0, 1)
+                self.set(row, col, 0, 6)
         for col in range(COLS):
             self.set(ROWS - 1, col, -1, 4)
 
@@ -28,7 +28,7 @@ class Tetris:
         self.scr.addch(y, x, " ", curses.color_pair(color))
 
     def clear(self, y, x):
-        self.set(y, x, 0, 1)
+        self.set(y, x, 0, 6)
 
     def get(self, y, x):
         if y < 0 or y >= ROWS or x < 0 or x >= COLS:
@@ -67,6 +67,7 @@ class Tetris:
         return k
 
     def fall(self, id, row, col, piece, color):
+        col = self.find_best_col(id, piece)
         prev_y = -1
         prev_x = -1
         k = ""
@@ -103,6 +104,21 @@ class Tetris:
             self.scr.refresh()
             self.scr.refresh()
 
+    def find_best_col(self, id, piece):
+        best_col = 0
+        best_row = 0
+        for col in range(COLS):
+            max_row = 0
+            for row in range(ROWS):
+                if self.can_move(id, row, col, piece):
+                    max_row = row
+                else:
+                    break
+            if max_row > best_row:
+                best_row = max_row
+                best_col = col
+        return best_col
+
     def turn(self, piece):
         turned = []
         for y, x in piece:
@@ -125,12 +141,19 @@ class Tetris:
                 self.set(row-dy, col, self.get(row-dy-1, col),
                          self.get_color(row-dy-1, col))
             
-            
+    def init_colors(self):
+        curses.init_pair(6, curses.COLOR_BLACK, curses.COLOR_BLACK)	
+        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_RED)	
+        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_BLUE)	
+        curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_GREEN)	
+        curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+        curses.init_pair(5, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
+        #    for i in range(0, curses.COLORS):
+        #        curses.init_pair(i + 1, i, i)
+
 
 def main(stdscr):
     curses.use_default_colors()
-    for i in range(0, curses.COLORS):
-        curses.init_pair(i + 1, i, i)
     stdscr.clear()
     curses.curs_set(0)
     curses.cbreak()
@@ -157,7 +180,7 @@ def main(stdscr):
     prevcol = 1
     random.seed()
     for id in range(1, 100):
-        color = random.choice(range(4, curses.COLORS))
+        color = random.choice(range(1, 6))
         game.fall(id, 1, 7, random.choice(pieces), color)
     
     stdscr.refresh()
