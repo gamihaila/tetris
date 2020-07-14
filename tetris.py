@@ -67,7 +67,7 @@ class Tetris:
         return k
 
     def fall(self, id, row, col, piece, color):
-        col = self.find_best_col(id, piece)
+        col, piece = self.find_best_col(id, piece)
         prev_y = -1
         prev_x = -1
         k = ""
@@ -75,9 +75,7 @@ class Tetris:
             if (k == "p" and self.getkey() == ""):
                 continue
             k = self.getkey()
-            if (k == "q"):
-                row -= 1
-            elif (k == "p"):
+            if (k == "p"):
                 continue
             elif (k == "n"):
                 col -= 1
@@ -104,20 +102,30 @@ class Tetris:
             self.scr.refresh()
             self.scr.refresh()
 
+    def potential_energy(self, piece, row):
+        energy = 0
+        for y, x in piece:
+            energy += ROWS - (row+y)
+        return energy
+            
     def find_best_col(self, id, piece):
         best_col = 0
-        best_row = 0
-        for col in range(COLS):
-            max_row = 0
-            for row in range(ROWS):
-                if self.can_move(id, row, col, piece):
-                    max_row = row
-                else:
-                    break
-            if max_row > best_row:
-                best_row = max_row
-                best_col = col
-        return best_col
+        best_piece = piece
+        min_potential_energy = ROWS * 4
+        for orientation in range(4):
+            energy = ROWS * 4
+            for col in range(COLS):
+                for row in range(ROWS):
+                    if self.can_move(id, row, col, piece):
+                        energy = self.potential_energy(piece, row)
+                    else:
+                        break
+                if energy < min_potential_energy:
+                    min_potential_energy = energy
+                    best_col = col
+                    best_piece = piece
+            piece = self.turn(piece)
+        return best_col, best_piece
 
     def turn(self, piece):
         turned = []
@@ -179,7 +187,7 @@ def main(stdscr):
 
     prevcol = 1
     random.seed()
-    for id in range(1, 100):
+    for id in range(1, 1000):
         color = random.choice(range(1, 6))
         game.fall(id, 1, 7, random.choice(pieces), color)
     
