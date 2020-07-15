@@ -117,14 +117,23 @@ class Tetris:
             energy += (ROWS-2-(row+y))
         return energy
 
+    def num_blocked_squares(self, row, col, piece):
+        num = 0
+        for y,x in piece:
+            Y = row+y
+            X = col+x
+            square = self.get(Y+1, X)
+            if square == 0:
+                num += 1
+        return num
+
     def find_lowest_row(self, id, col, piece):
         max_row = -1
         for row in range(ROWS):
             if self.can_move(id, row, col, piece):
                 max_row = row
         return max_row
-            
-    
+              
     def find_best_col(self, id, piece):
         best_col = 0
         best_piece = piece
@@ -134,6 +143,8 @@ class Tetris:
             for col in range(COLS):
                 row = self.find_lowest_row(id, col, piece)
                 energy = self.potential_energy(piece, row)
+                blocked = self.num_blocked_squares(row, col, piece)
+                energy += 5*blocked
                 if energy < min_potential_energy:
                     min_potential_energy = energy
                     best_col = col
