@@ -18,7 +18,7 @@ class Tetris:
             self.set(row, 0, -1, 4)
             self.set(row, COLS-1, -1, 4)
             for col in range(1, COLS-1):
-                self.set(row, col, 0, 6)
+                self.set(row, col, 0, 7)
         for col in range(COLS):
             self.set(ROWS - 1, col, -1, 4)
 
@@ -31,7 +31,7 @@ class Tetris:
         self.scr.addch(y, x, " ", curses.color_pair(color))
 
     def clear(self, y, x):
-        self.set(y, x, 0, 6)
+        self.set(y, x, 0, 7)
 
     def get(self, y, x):
         if y < 0 or y >= ROWS or x < 0 or x >= COLS:
@@ -169,7 +169,8 @@ class Tetris:
         curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_GREEN)	
         curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_YELLOW)
         curses.init_pair(5, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
-        curses.init_pair(6, curses.COLOR_BLACK, curses.COLOR_BLACK)	
+        curses.init_pair(6, curses.COLOR_BLACK, curses.COLOR_CYAN)	
+        curses.init_pair(7, curses.COLOR_BLACK, curses.COLOR_BLACK)	
         #    for i in range(0, curses.COLORS):
         #        curses.init_pair(i + 1, i, i)
 
@@ -202,7 +203,7 @@ def main(stdscr):
     prevcol = 1
     random.seed()
     for id in range(1, 1000):
-        color = random.choice(range(1, 6))
+        color = random.choice(range(1, 7))
         game.fall(id, random.choice(pieces), color)
     
     stdscr.refresh()
