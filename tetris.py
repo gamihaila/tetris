@@ -72,6 +72,8 @@ class Tetris:
     def fall(self, id, piece, color):
         row = 1
         col = 7
+        if not self.can_move(id, row, col, piece):
+            return False
         rcol, rpiece = self.find_best_col(id, piece)
         prev_y = -1
         prev_x = -1
@@ -110,6 +112,7 @@ class Tetris:
                 self.remove(full)
             self.scr.refresh()
             self.scr.refresh()
+        return True
 
     def potential_energy(self, piece, row):
         energy = 0
@@ -169,10 +172,12 @@ class Tetris:
         return None
 
     def remove(self, row):
-        for dy in range(0, row-1):
+        for dy in range(0, row):
             for col in range(1, COLS-1):
                 self.set(row-dy, col, self.get(row-dy-1, col),
                          self.get_color(row-dy-1, col))
+        for col in range(1, COLS-1):
+            self.clear(0, col)
             
     def init_colors(self):
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_RED)	
@@ -215,7 +220,8 @@ def main(stdscr):
     random.seed()
     for id in range(1, 1000):
         color = random.choice(range(1, 7))
-        game.fall(id, random.choice(pieces), color)
+        if not game.fall(id, random.choice(pieces), color):
+            break
     
     stdscr.refresh()
     while(game.getkey() != "q"):
