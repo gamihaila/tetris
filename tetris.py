@@ -9,10 +9,11 @@ ROWS = 30
 
 class Tetris:
 
-    def __init__(self, scr):
+    def __init__(self, scr, auto_play=False):
         self.board = [0] * COLS * ROWS
         self.board_color = [1] * COLS * ROWS
         self.scr = scr
+        self.auto_play = auto_play
         self.init_colors()
         for row in range(ROWS-1):
             self.set(row, 0, -1, 4)
@@ -72,7 +73,10 @@ class Tetris:
     def fall(self, id, piece, color):
         row = 1
         col = 7
-        rcol, rpiece = self.find_best_col(id, piece)
+        if self.auto_play:
+            rcol, rpiece = self.find_best_col(id, piece)
+        else:
+            rcol, rpiece = col, piece
         prev_y = -1
         prev_x = -1
         k = ""
@@ -90,7 +94,7 @@ class Tetris:
                 piece = self.turn(piece)
             else:
                 row += 1
-            if (rpiece != piece and row > 2):
+            if self.auto_play and rpiece != piece and row > 2:
                 piece = rpiece
                 col = rcol
 
@@ -205,7 +209,7 @@ def main(stdscr):
 
     pieces = (O, L, L1, I, T, Z, Z1)
 
-    game = Tetris(stdscr)
+    game = Tetris(stdscr, auto_play=False)
 
     #game.set(3, 4, 5, 3)
 
