@@ -1,7 +1,5 @@
-from colorama import Fore, Back, Style
-from curses import wrapper, initscr, start_color
+from curses import wrapper
 import curses
-from time import sleep
 import random
 
 COLS = 20
@@ -207,12 +205,6 @@ def main(stdscr):
 
     game = Tetris(stdscr)
 
-    #game.set(3, 4, 5, 3)
-
-
-
-    prevcol = 1
-    random.seed()
     for id in range(1, 1000):
         color = random.choice(range(1, 7))
         game.fall(id, random.choice(pieces), color)
@@ -222,7 +214,8 @@ def main(stdscr):
         pass
 
 
-wrapper(main)
+if __name__ == "__main__":
+    wrapper(main)
 
 
 
