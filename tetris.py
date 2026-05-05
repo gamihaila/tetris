@@ -34,6 +34,7 @@ class Tetris(Board):
         rcol, rpiece = self.find_best_col(id, piece)
         prev_y = -1
         prev_x = -1
+        prev_piece = piece
         k = ""
         while (True):
             if (k == "p" and self.getkey() == ""):
